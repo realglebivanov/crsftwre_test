@@ -1,6 +1,7 @@
 # CrsftwreTest
 
 Phoenix API app that sorts shell tasks by their dependencies. It serves `POST /tasks/format`.
+The behaviour and acceptance criteria are in [docs/SPEC.md](docs/SPEC.md).
 
 ## Local
 
@@ -9,6 +10,15 @@ asdf install
 mix setup
 mix phx.server
 ```
+
+## Checks
+
+```bash
+mix precommit
+```
+
+This runs the compiler with warnings as errors, an unused-deps check, the format check, `credo --strict`, `dialyzer` and the tests.
+CI runs the same steps and also builds the Docker image.
 
 ## Docker
 
@@ -36,3 +46,15 @@ EOF
 ```
 
 Use `Accept: text/plain` to get a bash script instead of JSON.
+
+## How I used AI
+
+I used Claude Code for the project tooling and docs: the Docker setup, the Credo and Dialyzer configuration, the CI workflow, and this README.
+I reviewed each change and corrected it when it drifted.
+The rules in [AGENTS.md](AGENTS.md) come from those corrections, and each one says what prompted it.
+
+The core logic in `CrsftwreTest.Commands.Sorter` and `CrsftwreTestWeb.Controllers.TaskController` was written by hand using Kahn's algorithm. It wouldn't make much sense to generate it with AI considering the assinment was mostly about it. 
+
+`mix precommit` is the feedback loop, and it caught mistakes that looked fine in review.
+Dialyzer rejected a spec that said the text view returns `iodata()`, although it always returns a list.
+Strict Credo flagged the sort function as too complex, which led to splitting it into two helpers.

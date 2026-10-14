@@ -1,99 +1,43 @@
-This is a web application written using the Phoenix web framework.
+Phoenix JSON API with one endpoint, `POST /tasks/format`, that sorts shell tasks by their dependencies.
+The behaviour, error contract and acceptance criteria are in [docs/SPEC.md](docs/SPEC.md).
 
-## Project guidelines
+## Layout
 
-- Use `mix precommit` alias when you are done with all changes and fix any pending issues
-- Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
+- `lib/crsftwre_test/commands/parser.ex` validates the payload against `priv/schemas/tasks.json` and builds `Command` structs.
+- `lib/crsftwre_test/commands/sorter.ex` orders commands with Kahn's algorithm.
+- `lib/crsftwre_test_web/controllers/` holds the controller, the fallback controller, and the JSON and TEXT views.
 
-### Phoenix v1.8 guidelines
+## Commands
 
-- **Always** begin your LiveView templates with `<Layouts.app flash={@flash} ...>` which wraps all inner content
-- The `MyAppWeb.Layouts` module is aliased in the `my_app_web.ex` file, so you can use it without needing to alias it again
-- Anytime you run into errors with no `current_scope` assign:
-  - You failed to follow the Authenticated Routes guidelines, or you failed to pass `current_scope` to `<Layouts.app>`
-  - **Always** fix the `current_scope` error by moving your routes to the proper `live_session` and ensure you pass `current_scope` as needed
-- Phoenix v1.8 moved the `<.flash_group>` component to the `Layouts` module. You are **forbidden** from calling `<.flash_group>` outside of the `layouts.ex` module
-- Out of the box, `core_components.ex` imports an `<.icon name="hero-x-mark" class="w-5 h-5"/>` component for hero icons. **Always** use the `<.icon>` component for icons, **never** use `Heroicons` modules or similar
-- **Always** use the imported `<.input>` component for form inputs from `core_components.ex` when available. `<.input>` is imported and using it will save steps and prevent errors
-- If you override the default input classes (`<.input class="myclass px-2 py-1 rounded-lg">)`) class with your own values, no default classes are inherited, so your
-custom classes must fully style the input
+- `mix precommit` runs every check: compile with warnings as errors, unused deps, format, `credo --strict`, `dialyzer`, tests. Run it when you are done and fix everything it reports.
+- `docker compose run --rm --build test` runs the tests in Docker.
+- CI in `.github/workflows/ci.yml` runs the same checks and builds the Docker image.
 
+## Boundaries
 
-<!-- usage-rules-start -->
+- **You may change** code and tests under `lib/` and `test/`, and the Docker, CI and README files.
+- **Ask first** before adding a dependency, or changing the JSON schema, the response shapes or the error messages. Clients depend on them, and the tests pin them.
+- **Never** edit `mix.lock`, `_build/`, `deps/` or `priv/plts/` by hand. Mix generates them.
+- **Never** loosen `.credo.exs`, the Dialyzer flags or the precommit steps to get a check passing. Fix the code instead.
 
-<!-- phoenix:elixir-start -->
-## Elixir guidelines
+## Rules added while working
 
-- Elixir lists **do not support index based access via the access syntax**
+- **Do not add code comments.** Added after the agent annotated new helpers and the Credo config with explanatory comments. Names, specs and tests carry the meaning here, and comments drift.
+- **Use `@moduledoc false` instead of inventing docs.** Added after the agent wrote module docs only to satisfy Credo. A doc written to please a linter adds noise, not information.
+- **Checks must fail, not fix.** Precommit runs `mix format --check-formatted`. Added after the agent wired plain `mix format` into precommit. A check that rewrites files hides the problem and behaves differently from CI.
+- **Specs must match what the function returns.** Added after Dialyzer rejected a spec that said the text view returns `iodata()` when it always returns a list.
+- **Check documentation against the code.** Added after the agent wrote in the README that routes live under `/api`, which they don't.
+- **Keep tooling proportional to the project.** Added after the agent built a hook-based harness for a one-endpoint API. One command and CI are enough.
+- **Keep input order among tasks that are ready at the same time.** The output must be deterministic and close to what the client wrote, and the sorter tests pin it.
 
-  **Never do this (invalid)**:
+## Elixir rules
 
-      i = 0
-      mylist = ["blue", "green"]
-      mylist[i]
-
-  Instead, **always** use `Enum.at`, pattern matching, or `List` for index based list access, ie:
-
-      i = 0
-      mylist = ["blue", "green"]
-      Enum.at(mylist, i)
-
-- Elixir variables are immutable, but can be rebound, so for block expressions like `if`, `case`, `cond`, etc
-  you *must* bind the result of the expression to a variable if you want to use it and you CANNOT rebind the result inside the expression, ie:
-
-      # INVALID: we are rebinding inside the `if` and the result never gets assigned
-      if connected?(socket) do
-        socket = assign(socket, :val, val)
-      end
-
-      # VALID: we rebind the result of the `if` to a new variable
-      socket =
-        if connected?(socket) do
-          assign(socket, :val, val)
-        end
-
-- **Never** nest multiple modules in the same file as it can cause cyclic dependencies and compilation errors
-- **Never** use map access syntax (`changeset[:field]`) on structs as they do not implement the Access behaviour by default. For regular structs, you **must** access the fields directly, such as `my_struct.field` or use higher level APIs that are available on the struct if they exist, `Ecto.Changeset.get_field/2` for changesets
-- Elixir's standard library has everything necessary for date and time manipulation. Familiarize yourself with the common `Time`, `Date`, `DateTime`, and `Calendar` interfaces by accessing their documentation as necessary. **Never** install additional dependencies unless asked or for date/time parsing (which you can use the `date_time_parser` package)
-- Don't use `String.to_atom/1` on user input (memory leak risk)
-- Predicate function names should not start with `is_` and should end in a question mark. Names like `is_thing` should be reserved for guards
-- Elixir's builtin OTP primitives like `DynamicSupervisor` and `Registry`, require names in the child spec, such as `{DynamicSupervisor, name: MyApp.MyDynamicSup}`, then you can use `DynamicSupervisor.start_child(MyApp.MyDynamicSup, child_spec)`
-- Use `Task.async_stream(collection, callback, options)` for concurrent enumeration with back-pressure. The majority of times you will want to pass `timeout: :infinity` as option
-
-## Mix guidelines
-
-- Read the docs and options before using tasks (by using `mix help task_name`)
-- To debug test failures, run tests in a specific file with `mix test test/my_test.exs` or run all previously failed tests with `mix test --failed`
-- `mix deps.clean --all` is **almost never needed**. **Avoid** using it unless you have good reason
-
-## Test guidelines
-
-- **Always use `start_supervised!/1`** to start processes in tests as it guarantees cleanup between tests
-- **Avoid** `Process.sleep/1` and `Process.alive?/1` in tests
-  - Instead of sleeping to wait for a process to finish, **always** use `Process.monitor/1` and assert on the DOWN message:
-
-      ref = Process.monitor(pid)
-      assert_receive {:DOWN, ^ref, :process, ^pid, :normal}
-
-   - Instead of sleeping to synchronize before the next call, **always** use `_ = :sys.get_state/1` to ensure the process has handled prior messages
-<!-- phoenix:elixir-end -->
-
-<!-- phoenix:phoenix-start -->
-## Phoenix guidelines
-
-- Remember Phoenix router `scope` blocks include an optional alias which is prefixed for all routes within the scope. **Always** be mindful of this when creating routes within a scope to avoid duplicate module prefixes.
-
-- You **never** need to create your own `alias` for route definitions! The `scope` provides the alias, ie:
-
-      scope "/admin", AppWeb.Admin do
-        pipe_through :browser
-
-        live "/users", UserLive, :index
-      end
-
-  the UserLive route would point to the `AppWeb.Admin.UserLive` module
-
-- `Phoenix.View` no longer is needed or included with Phoenix, don't use it
-<!-- phoenix:phoenix-end -->
-
-<!-- usage-rules-end -->
+- Lists do not support index access with `list[i]`. Use `Enum.at/2` or pattern matching.
+- Bind the result of `if`, `case` and `cond` to a variable. Rebinding inside the block has no effect outside it.
+- One module per file.
+- Structs don't implement Access, so use `struct.field`, never `struct[:field]`.
+- Never call `String.to_atom/1` on user input.
+- Predicate functions end in `?` and don't start with `is_`. Reserve `is_` for guards.
+- In tests, start processes with `start_supervised!/1`. Don't use `Process.sleep/1`. Wait with `Process.monitor/1` and `assert_receive`, or call `:sys.get_state/1`.
+- Read `mix help <task>` before using an unfamiliar Mix task.
+- Phoenix router scopes prefix their alias onto module names. Don't repeat the prefix in routes.
