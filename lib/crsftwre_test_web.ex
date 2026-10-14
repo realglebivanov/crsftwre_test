@@ -17,8 +17,10 @@ defmodule CrsftwreTestWeb do
   those modules here.
   """
 
+  @spec static_paths() :: [String.t()]
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
 
+  @spec router() :: Macro.t()
   def router do
     quote do
       use Phoenix.Router, helpers: false
@@ -29,12 +31,14 @@ defmodule CrsftwreTestWeb do
     end
   end
 
+  @spec channel() :: Macro.t()
   def channel do
     quote do
       use Phoenix.Channel
     end
   end
 
+  @spec controller() :: Macro.t()
   def controller do
     quote do
       use Phoenix.Controller, formats: [:json, :text]
@@ -45,6 +49,7 @@ defmodule CrsftwreTestWeb do
     end
   end
 
+  @spec verified_routes() :: Macro.t()
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,

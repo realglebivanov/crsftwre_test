@@ -4,6 +4,7 @@ defmodule CrsftwreTestWeb.Controllers.TaskJSON do
   @doc """
   Renders the sorted tasks.
   """
+  @spec format(%{commands: [Command.t()]}) :: %{tasks: [%{name: String.t(), command: String.t()}]}
   def format(%{commands: commands}) do
     %{tasks: Enum.map(commands, &data/1)}
   end

@@ -10,7 +10,24 @@ defmodule CrsftwreTest.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      dialyzer: dialyzer()
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_add_apps: [:mix, :ex_unit],
+      plt_core_path: "priv/plts",
+      plt_local_path: "priv/plts",
+      flags: [
+        :error_handling,
+        :extra_return,
+        :missing_return,
+        :unmatched_returns,
+        :underspecs
+      ],
+      list_unused_filters: true
     ]
   end
 
@@ -44,10 +61,11 @@ defmodule CrsftwreTest.MixProject do
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:nimble_pool, "~> 1.0"},
-      {:ex_json_schema, "~> 0.11"}
+      {:ex_json_schema, "~> 0.11"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -60,7 +78,14 @@ defmodule CrsftwreTest.MixProject do
   defp aliases do
     [
       setup: ["deps.get"],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: [
+        "compile --warnings-as-errors",
+        "deps.unlock --unused",
+        "format --check-formatted",
+        "credo --strict",
+        "dialyzer",
+        "test"
+      ]
     ]
   end
 end

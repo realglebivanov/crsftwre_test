@@ -3,7 +3,7 @@ defmodule CrsftwreTest.Application do
 
   use Application
 
-  @impl true
+  @impl Application
   def start(_type, _args) do
     children = [
       CrsftwreTestWeb.Telemetry,
@@ -14,7 +14,7 @@ defmodule CrsftwreTest.Application do
     Supervisor.start_link(children, opts)
   end
 
-  @impl true
+  @impl Application
   def config_change(changed, _new, removed) do
     CrsftwreTestWeb.Endpoint.config_change(changed, removed)
     :ok

@@ -1,4 +1,6 @@
 defmodule CrsftwreTest.Commands.Command do
+  @moduledoc false
+
   @type t :: %__MODULE__{
           name: String.t(),
           command: String.t(),

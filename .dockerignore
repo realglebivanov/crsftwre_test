@@ -2,6 +2,7 @@
 .gitignore
 .dockerignore
 Dockerfile
+Dockerfile.test
 docker-compose.yml
 _build/
 deps/
@@ -11,3 +12,4 @@ tmp/
 erl_crash.dump
 *.ez
 .env
+priv/plts/

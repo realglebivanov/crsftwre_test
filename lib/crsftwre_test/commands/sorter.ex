@@ -1,34 +1,38 @@
 defmodule CrsftwreTest.Commands.Sorter do
-  alias CrsftwreTest.Commands.Command
-
   @moduledoc "Kahn's algorithm"
+
+  alias CrsftwreTest.Commands.Command
 
   @spec sort([Command.t()]) :: {:ok, [Command.t()]} | {:error, [String.t()]}
   def sort([]), do: {:ok, []}
 
   def sort(commands) do
-    {queue, in_degrees} =
-      Enum.reduce(commands, {:queue.new(), %{}}, fn %Command{} = cmd, {queue, in_degrees} ->
-        case length(cmd.requires) do
-          0 -> {:queue.in(cmd, queue), in_degrees}
-          len -> {queue, Map.put(in_degrees, cmd.name, len)}
-        end
-      end)
+    {queue, in_degrees} = initial_state(commands)
 
-    edges =
-      Enum.reduce(commands, %{}, fn %Command{} = cmd, edges ->
-        Enum.reduce(cmd.requires, edges, fn requirement, edges ->
-          Map.update(edges, requirement, [cmd], &[cmd | &1])
-        end)
-      end)
-
-    case sort(queue, in_degrees, edges, []) do
+    case sort(queue, in_degrees, build_edges(commands), []) do
       {in_degrees, sorted} when map_size(in_degrees) == 0 ->
         {:ok, sorted}
 
       {in_degrees, _sorted} ->
         {:error, to_errors(in_degrees)}
     end
+  end
+
+  defp initial_state(commands) do
+    Enum.reduce(commands, {:queue.new(), %{}}, fn %Command{} = cmd, {queue, in_degrees} ->
+      case length(cmd.requires) do
+        0 -> {:queue.in(cmd, queue), in_degrees}
+        len -> {queue, Map.put(in_degrees, cmd.name, len)}
+      end
+    end)
+  end
+
+  defp build_edges(commands) do
+    Enum.reduce(commands, %{}, fn %Command{} = cmd, edges ->
+      Enum.reduce(cmd.requires, edges, fn requirement, edges ->
+        Map.update(edges, requirement, [cmd], &[cmd | &1])
+      end)
+    end)
   end
 
   defp sort(queue, in_degrees, edges, sorted) do
