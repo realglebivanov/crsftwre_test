@@ -10,7 +10,7 @@ defmodule CrsftwreTest.Commands.Parser do
   @external_resource @schema_path
   @schema @schema_path |> File.read!() |> Jason.decode!() |> ExJsonSchema.Schema.resolve()
 
-  @type error :: %{path: String.t(), message: String.t()} | [String.t()]
+  @type error :: %{path: String.t(), message: String.t()} | String.t()
 
   @spec parse(map()) :: {:ok, [Command.t()]} | {:error, [error()]}
   def parse(data) do
