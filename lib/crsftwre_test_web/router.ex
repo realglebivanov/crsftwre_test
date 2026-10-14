@@ -1,14 +1,7 @@
 defmodule CrsftwreTestWeb.Router do
   use CrsftwreTestWeb, :router
 
-  pipeline :api do
-    plug :accepts, ["json"]
-  end
-
-  scope "/api", CrsftwreTestWeb do
-    pipe_through :api
-
-    post "/tasks", Controllers.TaskController, :run
+  scope "/", CrsftwreTestWeb do
     post "/tasks/format", Controllers.TaskController, :format
   end
 

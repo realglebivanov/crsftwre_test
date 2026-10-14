@@ -37,7 +37,7 @@ defmodule CrsftwreTestWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, formats: [:html, :json]
+      use Phoenix.Controller, formats: [:json, :text]
 
       import Plug.Conn
 
