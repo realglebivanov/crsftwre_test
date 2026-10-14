@@ -30,6 +30,36 @@ defmodule CrsftwreTest.Commands.ParserTest do
             ]} = Parser.parse(data)
   end
 
+  test "rejects duplicate task names" do
+    data = %{
+      "tasks" => [
+        %{"name" => "task-1", "command" => "echo 1"},
+        %{"name" => "task-2", "command" => "echo 2"},
+        %{"name" => "task-1", "command" => "echo 3"}
+      ]
+    }
+
+    assert {:error, ["Found duplicate task task-1"]} = Parser.parse(data)
+  end
+
+  test "reports every duplicate task name" do
+    data = %{
+      "tasks" => [
+        %{"name" => "task-1", "command" => "echo 1"},
+        %{"name" => "task-2", "command" => "echo 2"},
+        %{"name" => "task-1", "command" => "echo 3"},
+        %{"name" => "task-3", "command" => "echo 4"},
+        %{"name" => "task-2", "command" => "echo 5"}
+      ]
+    }
+
+    assert {:error,
+            [
+              "Found duplicate task task-1",
+              "Found duplicate task task-2"
+            ]} = Parser.parse(data)
+  end
+
   test "rejects missing tasks key" do
     assert {:error, [%{path: "#", message: message}]} = Parser.parse(%{})
     assert message =~ "tasks"
