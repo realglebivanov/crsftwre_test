@@ -83,6 +83,24 @@ defmodule CrsftwreTestWeb.Controllers.TaskControllerTest do
              ]
     end
 
+    test "returns 400 for malformed json", %{conn: conn} do
+      {400, _headers, body} =
+        assert_error_sent 400, fn ->
+          conn
+          |> put_req_header("content-type", "application/json")
+          |> post(~p"/tasks/format", ~s({"tasks":))
+        end
+
+      assert Jason.decode!(body) == %{"errors" => ["Bad Request"]}
+    end
+
+    test "returns 406 for an unsupported accept header", %{conn: conn} do
+      {406, _headers, body} =
+        assert_error_sent 406, fn -> post_tasks(conn, %{"tasks" => []}, "application/xml") end
+
+      assert Jason.decode!(body) == %{"errors" => ["Not Acceptable"]}
+    end
+
     test "returns 422 when a task requires an unknown task", %{conn: conn} do
       payload = %{
         "tasks" => [%{"name" => "a", "command" => "echo a", "requires" => ["missing"]}]

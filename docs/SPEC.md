@@ -45,12 +45,12 @@ The `Accept` header picks the response format:
 
 ## Errors
 
-Both error kinds return status 422.
-
-| Problem | Body |
-| --- | --- |
-| The payload breaks the schema | `{"errors": [{"path": "#/tasks/0", "message": "..."}]}` with every violation listed |
-| A task can't be scheduled | `{"errors": ["Couldn't resolve N deps for task NAME"]}` |
+| Problem | Status | Body |
+| --- | --- | --- |
+| The body is not valid JSON | 400 | `{"errors": ["Bad Request"]}` |
+| The `Accept` header asks for an unsupported format | 406 | `{"errors": ["Not Acceptable"]}` |
+| The payload breaks the schema | 422 | `{"errors": [{"path": "#/tasks/0", "message": "..."}]}` with every violation listed |
+| A task can't be scheduled | 422 | `{"errors": ["Couldn't resolve N deps for task NAME"]}` |
 
 A task can't be scheduled when it requires an unknown task, requires itself, sits in a cycle, or depends on another task that can't be scheduled.
 `N` is the number of its requirements still unresolved.
@@ -68,10 +68,11 @@ Each criterion is covered by a test in `test/`.
 - A two-task cycle returns 422 naming both tasks.
 - An unknown requirement returns 422 naming the task that needs it.
 - `Accept: */*` returns JSON.
+- Malformed JSON returns 400.
+- `Accept: application/xml` returns 406.
 
 ## Known gaps
 
-- **Malformed JSON and unsupported `Accept` values return an empty 500.** Phoenix tries to render these errors with `CrsftwreTestWeb.ErrorJSON`, which does not exist. The expected responses are 400 and 406.
 - **Duplicate task names are accepted.** Every copy is kept in the output, and a task that requires the name runs after all of them.
 - **Commands are not validated or escaped.** The text response runs whatever the client sent, so the client owns what the script does.
 - **There is no authentication or rate limiting.** The request body limit is the Plug default.
