@@ -45,7 +45,21 @@ curl -X POST http://localhost:4000/tasks/format \
 EOF
 ```
 
-Use `Accept: text/plain` to get a bash script instead of JSON.
+```bash
+curl -s -X POST http://localhost:4000/tasks/format \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: text/plain' \
+  --data @- <<'EOF' | bash
+{
+  "tasks": [
+    {"name": "task-1", "command": "touch /tmp/file1"},
+    {"name": "task-2", "command": "cat /tmp/file1", "requires": ["task-3"]},
+    {"name": "task-3", "command": "echo 'Hello World!' > /tmp/file1", "requires": ["task-1"]},
+    {"name": "task-4", "command": "rm /tmp/file1", "requires": ["task-2", "task-3"]}
+  ]
+}
+EOF
+```
 
 ## How I used AI
 
@@ -53,7 +67,7 @@ I used Claude Code for the project tooling and docs: the Docker setup, the Credo
 I reviewed each change and corrected it when it drifted.
 The rules in [AGENTS.md](AGENTS.md) come from those corrections, and each one says what prompted it.
 
-The core logic in `CrsftwreTest.Commands.Sorter` and `CrsftwreTestWeb.Controllers.TaskController` was written by hand using Kahn's algorithm. It wouldn't make much sense to generate it with AI considering the assinment was mostly about it. 
+The core logic in `CrsftwreTest.Commands.Sorter` and `CrsftwreTestWeb.Controllers.TaskController` was written by hand using Kahn's algorithm. It wouldn't make much sense to generate it with AI considering the assinment was mostly about implementing the algorithm. 
 
 `mix precommit` is the feedback loop, and it caught mistakes that looked fine in review.
 Dialyzer rejected a spec that said the text view returns `iodata()`, although it always returns a list.
