@@ -1,0 +1,33 @@
+ARG ELIXIR_VERSION=1.20.3
+ARG OTP_VERSION=28.5.0.5
+ARG DEBIAN_VERSION=trixie-20260824-slim
+
+ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
+
+FROM ${BUILDER_IMAGE}
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends build-essential git \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+RUN mix local.hex --force && mix local.rebar --force
+
+ENV MIX_ENV="test"
+
+COPY mix.exs mix.lock ./
+RUN mix deps.get
+RUN mkdir config
+COPY config/config.exs config/${MIX_ENV}.exs config/
+RUN mix deps.compile
+
+COPY priv priv
+COPY lib lib
+COPY test test
+COPY config/runtime.exs config/
+COPY .formatter.exs ./
+
+RUN mix compile --warnings-as-errors
+
+CMD ["mix", "test"]

@@ -18,4 +18,4 @@ services:
     profiles: ["test"]
     build:
       context: .
-      target: test
+      dockerfile: Dockerfile.test
