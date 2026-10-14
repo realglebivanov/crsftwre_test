@@ -1,0 +1,21 @@
+services:
+  web:
+    build:
+      context: .
+      target: runner
+    ports:
+      - "${PORT:-4000}:4000"
+    environment:
+      PORT: "4000"
+      PHX_HOST: "${PHX_HOST:-localhost}"
+      # Generate one with `mix phx.gen.secret` and put it in .env or your shell.
+      SECRET_KEY_BASE: "${SECRET_KEY_BASE:-jh6KU+Zk8ixkrFN/JZxTeAhpTqpC8f+eLPlFKhQjb7b0F2hoc0l6vB8qhloESOvB}"
+    restart: unless-stopped
+
+  # Runs the test suite. Not started by `docker compose up`.
+  # Usage: docker compose run --rm test
+  test:
+    profiles: ["test"]
+    build:
+      context: .
+      target: test

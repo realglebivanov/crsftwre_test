@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tasks",
+  "type": "object",
+  "required": ["tasks"],
+  "additionalProperties": false,
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/task" }
+    }
+  },
+  "definitions": {
+    "task": {
+      "type": "object",
+      "required": ["name", "command"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requires": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
