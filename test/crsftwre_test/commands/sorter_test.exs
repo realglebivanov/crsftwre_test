@@ -30,6 +30,11 @@ defmodule CrsftwreTest.Commands.SorterTest do
     assert names(sorted) == ["task-1", "task-2"]
   end
 
+  test "keeps input order for commands unblocked by the same requirement" do
+    commands = [cmd("a"), cmd("b", ["a"]), cmd("c", ["a"]), cmd("d", ["a"])]
+    assert {:ok, ^commands} = Sorter.sort(commands)
+  end
+
   test "sorts a reversed chain" do
     commands = [cmd("task-3", ["task-2"]), cmd("task-2", ["task-1"]), cmd("task-1")]
     assert {:ok, sorted} = Sorter.sort(commands)

@@ -45,6 +45,7 @@ defmodule CrsftwreTest.Commands.Sorter do
 
   defp enqueue_resolved(dependants, queue, in_degrees) do
     dependants
+    |> Enum.reverse()
     |> Enum.reduce({queue, in_degrees}, fn dependant, {queue, in_degrees} = state ->
       case Map.get(in_degrees, dependant.name) do
         nil ->
